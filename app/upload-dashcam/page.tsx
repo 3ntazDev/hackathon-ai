@@ -1,374 +1,334 @@
 "use client";
 
-import { useState, useRef } from 'react';
-import { Upload, Camera, CheckCircle, X, Play, Film, Shield, Zap, Clock, ArrowRight, FileVideo, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Camera, MapPin, ChevronRight, FileVideo, Shield, Zap, Clock, CheckCircle, Activity } from 'lucide-react';
+import Link from 'next/link';
 
-export default function UploadDashcamPage() {
-  const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const fileInputRef = useRef(null);
+export default function ServicePage() {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('video/')) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleFileSelect = (file) => {
-    setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-  };
-
-  const handleFileInput = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleUpload = () => {
-    if (!selectedFile) return;
-    
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    // محاكاة رفع الفيديو
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsUploading(false);
-            // هنا يمكن التوجيه لصفحة النتائج
-          }, 1000);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 300);
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setUploadProgress(0);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  };
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#006C35] via-[#F4F4F4] to-[#FFFFFF] overflow-hidden">
       
-      {/* خلفية متحركة */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-[#006C35]/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-gradient-to-br from-[#00A859]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
-
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-5xl">
+      {/* Navbar - نفس تصميم الصفحة الرئيسية */}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+        scrollY > 50 
+          ? 'bg-white/98 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,108,53,0.12)] py-2 sm:py-3' 
+          : 'bg-gradient-to-b from-[#006C35]/95 to-transparent py-3 sm:py-5'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
           
-          {/* Header */}
-          <div className="text-center mb-12 space-y-4">
-            <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/20 mb-4">
-              <Camera className="w-5 h-5 text-[#006C35]" />
-              <span className="text-[#006C35] text-sm font-bold">رفع فيديو الحادث</span>
-              <div className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse"></div>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] blur-lg sm:blur-xl opacity-50 rounded-xl sm:rounded-2xl"></div>
+              <div className="relative w-10 h-10 sm:w-12 md:w-14 sm:h-12 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center shadow-lg">
+                <Shield className="w-5 h-5 sm:w-6 md:w-8 sm:h-6 md:h-8 text-white" strokeWidth={2.5} />
+              </div>
             </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
-              <span className="block bg-gradient-to-r from-[#006C35] via-[#00A859] to-[#006C35] bg-clip-text text-transparent">
-                ارفع فيديو الداش كام
-              </span>
-              <span className="block text-[#1a1a1a] mt-2 text-3xl sm:text-4xl">
-                للتحليل الفوري
-              </span>
-            </h1>
-
-            <p className="text-lg sm:text-xl text-gray-700 max-w-2xl mx-auto">
-              قم برفع الفيديو وسيقوم <span className="text-[#006C35] font-bold">الذكاء الاصطناعي</span> بتحليله خلال ثوانٍ
-            </p>
+          
+            <div className="text-right">
+              <h1 className={`text-xl sm:text-2xl font-black tracking-tight transition-colors duration-300 ${
+                scrollY > 50 ? 'text-[#006C35]' : 'text-white'
+              }`}>
+                رَصـــد
+              </h1>
+              <p className={`text-[10px] sm:text-xs font-semibold transition-colors duration-300 ${
+                scrollY > 50 ? 'text-[#00A859]' : 'text-white/80'
+              }`}>
+                منصة تحليل الحوادث
+              </p>
+            </div>
           </div>
-
-          {/* Main Upload Area */}
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
-            
-            {/* Upload Zone */}
-            <div className="space-y-6">
-              
-              {/* Drag & Drop Area */}
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative group cursor-pointer transition-all duration-500 ${
-                  isDragging ? 'scale-105' : 'hover:scale-102'
+          
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8">
+            {[
+              { name: 'الرئيسية', active: false },
+              { name: 'كيف يعمل', active: false },
+              { name: 'رفع البلاغ', active: true }
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                className={`relative text-sm font-bold transition-all duration-300 ${
+                  scrollY > 50
+                    ? item.active ? 'text-[#006C35]' : 'text-gray-600 hover:text-[#006C35]'
+                    : 'text-white/90 hover:text-white'
                 }`}
               >
-                {/* خلفية متوهجة */}
-                <div className={`absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl transition-all duration-500 ${
-                  isDragging ? 'opacity-100 blur-2xl scale-105' : 'opacity-60 blur-xl'
-                }`}></div>
-                
-                <div className={`relative bg-white rounded-3xl p-8 sm:p-12 border-4 border-dashed transition-all duration-500 ${
-                  isDragging 
-                    ? 'border-[#006C35] bg-[#006C35]/5' 
-                    : selectedFile 
-                      ? 'border-[#00A859]' 
-                      : 'border-gray-300 hover:border-[#006C35]'
-                }`}>
-                  
-                  {!selectedFile ? (
-                    <div className="text-center space-y-6">
-                      {/* أيقونة متحركة */}
-                      <div className={`w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center transition-all duration-500 ${
-                        isDragging ? 'scale-110 rotate-12' : 'scale-100 rotate-0'
-                      }`}>
-                        <Upload className="w-12 h-12 text-white" strokeWidth={2.5} />
-                      </div>
-
-                      <div>
-                        <h3 className="text-2xl font-black text-[#1a1a1a] mb-3">
-                          {isDragging ? 'أفلت الفيديو هنا' : 'اسحب الفيديو وأفلته هنا'}
-                        </h3>
-                        <p className="text-gray-600 mb-4">أو اضغط لاختيار ملف من جهازك</p>
-                        
-                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#006C35] to-[#00A859] text-white font-bold hover:scale-105 transition-transform duration-300">
-                          <FileVideo className="w-5 h-5" />
-                          <span>اختر فيديو</span>
-                        </div>
-                      </div>
-
-                      {/* أنواع الملفات المدعومة */}
-                      <div className="pt-4 border-t border-gray-200">
-                        <p className="text-sm text-gray-500 mb-2 font-semibold">الصيغ المدعومة:</p>
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          {['MP4', 'MOV', 'AVI', 'MKV'].map((format) => (
-                            <span key={format} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold">
-                              {format}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {/* معلومات الملف */}
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center flex-shrink-0">
-                          <Film className="w-8 h-8 text-white" />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-lg font-bold text-[#1a1a1a] truncate">
-                                {selectedFile.name}
-                              </h4>
-                              <p className="text-sm text-gray-500">
-                                {formatFileSize(selectedFile.size)}
-                              </p>
-                            </div>
-                            
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveFile();
-                              }}
-                              className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex-shrink-0"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-
-                          {/* شريط التقدم */}
-                          {isUploading && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 font-semibold">جاري الرفع...</span>
-                                <span className="text-[#006C35] font-bold">{uploadProgress}%</span>
-                              </div>
-                              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-gradient-to-r from-[#006C35] to-[#00A859] rounded-full transition-all duration-300"
-                                  style={{ width: `${uploadProgress}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          )}
-
-                          {uploadProgress === 100 && !isUploading && (
-                            <div className="flex items-center gap-2 text-[#00A859] font-bold">
-                              <CheckCircle className="w-5 h-5" />
-                              <span>تم الرفع بنجاح!</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* معاينة الفيديو */}
-                      {previewUrl && (
-                        <div className="relative rounded-2xl overflow-hidden bg-black">
-                          <video 
-                            src={previewUrl} 
-                            controls
-                            className="w-full h-48 object-contain"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    onChange={handleFileInput}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-
-              {/* زر الرفع */}
-              {selectedFile && !isUploading && uploadProgress !== 100 && (
-                <button
-                  onClick={handleUpload}
-                  className="w-full group relative px-8 py-5 rounded-2xl overflow-hidden shadow-2xl hover:shadow-[0_20px_60px_rgba(0,108,53,0.3)] transition-all duration-500 hover:scale-105"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#006C35] to-[#00A859]"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#00A859] to-[#006C35] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <span className="relative text-white font-bold text-lg flex items-center gap-3 justify-center">
-                    <Upload className="w-6 h-6" />
-                    ابدأ رفع الفيديو والتحليل
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
-                  </span>
-                </button>
-              )}
-            </div>
-
-            {/* Info Cards */}
-            <div className="space-y-6">
-              
-              {/* نصائح الرفع */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl opacity-10 blur-xl"></div>
-                <div className="relative bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-gray-100">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-black text-[#1a1a1a]">نصائح للرفع</h3>
-                  </div>
-
-                  <ul className="space-y-4">
-                    {[
-                      { icon: Camera, text: 'تأكد من وضوح الفيديو وجودته' },
-                      { icon: Clock, text: 'يفضل فيديو من 10 ثانية إلى دقيقتين' },
-                      { icon: FileVideo, text: 'الحجم الأقصى: 500 ميجابايت' },
-                      { icon: Play, text: 'يجب أن يظهر الحادث بوضوح' }
-                    ].map((tip, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#006C35]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <tip.icon className="w-4 h-4 text-[#006C35]" />
-                        </div>
-                        <span className="text-gray-700 font-medium">{tip.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* مميزات التحليل */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00A859] to-[#006C35] rounded-3xl opacity-10 blur-xl"></div>
-                <div className="relative bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl p-6 sm:p-8 shadow-xl">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
-                  
-                  <div className="relative text-white space-y-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <Zap className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-2xl font-black">ماذا سيحدث؟</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      {[
-                        { step: '1', text: 'تحليل مسار المركبات' },
-                        { step: '2', text: 'كشف نقاط الاصطدام' },
-                        { step: '3', text: 'تحديد نسبة المسؤولية' },
-                        { step: '4', text: 'إنشاء التقرير النهائي' }
-                      ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-black text-sm flex-shrink-0">
-                            {item.step}
-                          </div>
-                          <span className="font-semibold">{item.text}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-4 border-t border-white/20">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Shield className="w-5 h-5" />
-                        <span className="font-bold">جميع البيانات محمية ومشفرة</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* إحصائيات سريعة */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { icon: Zap, value: '< 5 ث', label: 'سرعة التحليل' },
-              { icon: CheckCircle, value: '98%', label: 'دقة النتائج' },
-              { icon: Shield, value: '100%', label: 'أمان البيانات' }
-            ].map((stat, idx) => (
-              <div key={idx} className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-2xl opacity-10 blur-xl"></div>
-                <div className="relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
-                  <stat.icon className="w-8 h-8 text-[#006C35] mb-3 mx-auto" />
-                  <div className="text-3xl font-black text-[#006C35] mb-1 text-center">{stat.value}</div>
-                  <div className="text-sm text-gray-600 font-semibold text-center">{stat.label}</div>
-                </div>
-              </div>
+                {item.name}
+                {item.active && (
+                  <div className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-colors duration-300 ${
+                    scrollY > 50 ? 'bg-[#006C35]' : 'bg-white'
+                  }`}></div>
+                )}
+              </button>
             ))}
           </div>
 
+          <Link href="/">
+            <button className="relative group px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#006C35] to-[#00A859] group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#00A859] to-[#006C35] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <span className="relative text-white flex items-center gap-2">
+                <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">العودة للرئيسية</span>
+                <span className="sm:hidden">الرئيسية</span>
+              </span>
+            </button>
+          </Link>
         </div>
-      </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center pt-24 px-4 sm:px-6 overflow-hidden">
+        
+        {/* خلفية متحركة - ألوان سعودية */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-[#006C35]/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-gradient-to-br from-[#00A859]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          
+          {/* خطوط هندسية */}
+          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#006C35]/20 to-transparent"></div>
+          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00A859]/20 to-transparent"></div>
+          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#006C35]/20 to-transparent"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto w-full relative z-10">
+          
+          {/* العنوان والوصف */}
+          <div className="text-center mb-16 space-y-6">
+            
+            {/* Badge */}
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/20">
+              <div className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse"></div>
+              <span className="text-[#006C35] text-sm font-bold">اختر طريقة رفع البلاغ المناسبة</span>
+              <Zap className="w-5 h-5 text-[#00A859]" />
+            </div>
+
+            {/* العنوان الرئيسي */}
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-tight">
+                <span className="block bg-gradient-to-r from-[#006C35] via-[#00A859] to-[#006C35] bg-clip-text text-transparent animate-pulse">
+                  كيف تريد رفع
+                </span>
+                <span className="block text-[#1a1a1a] mt-2">
+                  بلاغ الحادث؟
+                </span>
+              </h1>
+              
+              {/* شعار سعودي */}
+              <div className="flex items-center justify-center gap-3">
+                <div className="h-1 w-16 bg-gradient-to-r from-[#006C35] to-[#00A859] rounded-full"></div>
+                <span className="text-[#006C35] font-bold text-sm">⚡ سريع وآمن ودقيق</span>
+                <div className="h-1 w-16 bg-gradient-to-r from-[#00A859] to-[#006C35] rounded-full"></div>
+              </div>
+            </div>
+
+            {/* الوصف */}
+            <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 leading-relaxed max-w-3xl mx-auto font-medium">
+              نوفر لك <span className="text-[#006C35] font-bold">خيارين سهلين</span> لرفع البلاغ بناءً على ما لديك من معلومات
+            </p>
+          </div>
+
+          {/* البطاقات */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
+            
+            {/* بطاقة الداش كام */}
+            <Link href="/upload-dashcam">
+            <div
+              onMouseEnter={() => setHoveredCard('dashcam')}
+              onMouseLeave={() => setHoveredCard(null)}
+              className="group relative"
+            >
+              {/* خلفية متوهجة */}
+              <div className={`absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl transition-all duration-500 ${
+                hoveredCard === 'dashcam' ? 'scale-105 opacity-100 blur-2xl' : 'scale-100 opacity-60 blur-xl'
+              }`}></div>
+              
+              <div className={`relative bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl transition-all duration-500 cursor-pointer border-2 border-[#006C35]/30 ${
+                hoveredCard === 'dashcam' ? 'scale-105 -translate-y-3' : 'scale-100'
+              }`}>
+                
+                {/* الباترن الخلفي */}
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
+
+                {/* Badge */}
+                <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-6">
+                  <Camera className="w-4 h-4 text-white" />
+                  <span className="text-white text-xs font-bold">الأكثر دقة</span>
+                </div>
+
+                {/* أيقونة متحركة */}
+                <div className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
+                  hoveredCard === 'dashcam' ? 'rotate-12 scale-110' : 'rotate-0 scale-100'
+                }`}>
+                  <Camera className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={2.5} />
+                </div>
+
+                {/* المحتوى */}
+                <h2 className="relative text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4">
+                  رفع بلاغ عن طريق
+                  <br />
+                  الداش كام
+                </h2>
+                
+                <p className="relative text-base sm:text-lg text-white/90 mb-6 leading-relaxed">
+                  قم برفع <span className="font-bold">فيديو الحادث</span> مباشرة من كاميرا سيارتك وسنقوم بمعالجته تلقائياً باستخدام الذكاء الاصطناعي
+                </p>
+
+                {/* المميزات */}
+                <ul className="relative space-y-3 mb-8">
+                  {[
+                    { icon: CheckCircle, text: 'معالجة تلقائية بالذكاء الاصطناعي' },
+                    { icon: Activity, text: 'دقة عالية في تحديد المسؤولية 98%' },
+                    { icon: Clock, text: 'نتائج فورية خلال 5 ثوانٍ' }
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-center text-white/90">
+                      <feature.icon className="w-5 h-5 ml-2 text-white flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{feature.text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* زر الإجراء */}
+                <div className={`relative flex items-center justify-between p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-xl transition-all duration-300 group-hover:bg-white/20 ${
+                  hoveredCard === 'dashcam' ? 'bg-white/20' : 'bg-white/10'
+                }`}>
+                  <span className="text-white font-bold text-base sm:text-lg">ابدأ رفع الفيديو</span>
+                  <ChevronRight className={`w-6 h-6 text-white transition-transform duration-300 ${
+                    hoveredCard === 'dashcam' ? 'translate-x-2' : 'translate-x-0'
+                  }`} />
+                </div>
+
+                {/* تأثير التوهج المتحرك */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity duration-500 ${
+                  hoveredCard === 'dashcam' ? 'opacity-100' : 'opacity-0'
+                } rounded-3xl pointer-events-none`}
+                  style={{
+                    transform: hoveredCard === 'dashcam' ? 'translateX(0)' : 'translateX(-100%)',
+                    transition: 'transform 1s ease-in-out, opacity 0.5s'
+                  }}
+                ></div>
+              </div>
+            </div>
+            </Link>
+
+            {/* بطاقة الموقع */}
+            <Link href="/report">
+            <div
+              onMouseEnter={() => setHoveredCard('location')}
+              onMouseLeave={() => setHoveredCard(null)}
+              className="group relative"
+            >
+              {/* خلفية متوهجة */}
+              <div className={`absolute inset-0 bg-gradient-to-br from-[#00A859] to-[#006C35] rounded-3xl transition-all duration-500 ${
+                hoveredCard === 'location' ? 'scale-105 opacity-100 blur-2xl' : 'scale-100 opacity-60 blur-xl'
+              }`}></div>
+              
+              <div className={`relative bg-gradient-to-br from-[#00A859] to-[#006C35] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl transition-all duration-500 cursor-pointer border-2 border-[#00A859]/30 ${
+                hoveredCard === 'location' ? 'scale-105 -translate-y-3' : 'scale-100'
+              }`}>
+                
+                {/* الباترن الخلفي */}
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
+
+                {/* Badge */}
+                <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-6">
+                  <MapPin className="w-4 h-4 text-white" />
+                  <span className="text-white text-xs font-bold">سهل وسريع</span>
+                </div>
+
+                {/* أيقونة متحركة */}
+                <div className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
+                  hoveredCard === 'location' ? '-rotate-12 scale-110' : 'rotate-0 scale-100'
+                }`}>
+                  <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={2.5} />
+                </div>
+
+                {/* المحتوى */}
+                <h2 className="relative text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4">
+                  رفع بلاغ باستخدام
+                  <br />
+                  الموقع
+                </h2>
+                
+                <p className="relative text-base sm:text-lg text-white/90 mb-6 leading-relaxed">
+                  قدم البلاغ مباشرة عبر <span className="font-bold">ملء النموذج</span> وإدخال التفاصيل والصور إذا لم يكن لديك فيديو
+                </p>
+
+                {/* المميزات */}
+                <ul className="relative space-y-3 mb-8">
+                  {[
+                    { icon: CheckCircle, text: 'سهولة في الاستخدام والتعبئة' },
+                    { icon: FileVideo, text: 'لا يتطلب فيديو أو داش كام' },
+                    { icon: Activity, text: 'إضافة تفاصيل دقيقة ومرفقات' }
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-center text-white/90">
+                      <feature.icon className="w-5 h-5 ml-2 text-white flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{feature.text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* زر الإجراء */}
+                <div className={`relative flex items-center justify-between p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-xl transition-all duration-300 group-hover:bg-white/20 ${
+                  hoveredCard === 'location' ? 'bg-white/20' : 'bg-white/10'
+                }`}>
+                  <span className="text-white font-bold text-base sm:text-lg">ابدأ ملء النموذج</span>
+                  <ChevronRight className={`w-6 h-6 text-white transition-transform duration-300 ${
+                    hoveredCard === 'location' ? 'translate-x-2' : 'translate-x-0'
+                  }`} />
+                </div>
+
+                {/* تأثير التوهج المتحرك */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity duration-500 ${
+                  hoveredCard === 'location' ? 'opacity-100' : 'opacity-0'
+                } rounded-3xl pointer-events-none`}
+                  style={{
+                    transform: hoveredCard === 'location' ? 'translateX(0)' : 'translateX(-100%)',
+                    transition: 'transform 1s ease-in-out, opacity 0.5s'
+                  }}
+                ></div>
+              </div>
+            </div>
+            </Link>
+
+          </div>
+
+          {/* ملاحظة إضافية */}
+          <div className="mt-12 sm:mt-16 text-center space-y-4">
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/10">
+              <Shield className="w-5 h-5 text-[#006C35]" />
+              <span className="text-gray-700 text-sm font-semibold">
+                جميع البلاغات سرية ويتم معالجتها بعناية فائقة
+              </span>
+            </div>
+            
+            {/* إحصائيات سريعة */}
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto pt-6">
+              {[
+                { icon: Clock, value: '< 5 ث', label: 'وقت المعالجة' },
+                { icon: Activity, value: '98%', label: 'دقة التحليل' },
+                { icon: Shield, value: '100%', label: 'أمان وخصوصية' }
+              ].map((stat, idx) => (
+                <div key={idx} className="p-4 sm:p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                  <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-[#006C35] mb-2 mx-auto" />
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#006C35] mb-1">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-semibold">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </main>
   );
 }
