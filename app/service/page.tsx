@@ -5,7 +5,7 @@ import { Camera, MapPin, ChevronRight, FileVideo, Shield, Zap, Clock, CheckCircl
 import Link from 'next/link';
 
 export default function ServicePage() {
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
