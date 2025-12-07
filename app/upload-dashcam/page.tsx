@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Upload, 
   Camera, 
@@ -9,16 +10,16 @@ import {
   Film, 
   Shield, 
   Zap, 
+  Clock, 
   ArrowRight, 
   FileVideo, 
   AlertCircle,
   Loader2,
-  FileImage,
-  Play,
-  Pause
+  FileImage
 } from 'lucide-react';
 
 export default function UploadDashcamPage() {
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -26,12 +27,10 @@ export default function UploadDashcamPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<'image' | 'video' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   
-  // يمكنك تغيير الرابط حسب البيئة
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  // رابط الـ API المنشور على Vercel
+  const API_BASE_URL = 'https://ai-acs.vercel.app';
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -48,30 +47,25 @@ export default function UploadDashcamPage() {
     setIsDragging(false);
     
     const file = e.dataTransfer.files[0];
-    if (file && (file.type.startsWith('image/') || file.type.startsWith('video/'))) {
+    if (file && (file.type.startsWith('image/'))) {
       handleFileSelect(file);
     } else {
-      setError('يرجى رفع صورة أو فيديو فقط');
+      setError('يرجى رفع صورة فقط (JPG, PNG, WEBP)');
     }
   };
 
   const handleFileSelect = (file: File) => {
     // التحقق من نوع الملف
-    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const allowedVideoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
-    
-    const isImage = allowedImageTypes.includes(file.type);
-    const isVideo = allowedVideoTypes.includes(file.type);
-    
-    if (!isImage && !isVideo) {
-      setError('نوع الملف غير مدعوم. يرجى رفع صورة (JPG, PNG, WEBP) أو فيديو (MP4, MOV, AVI, WEBM)');
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('نوع الملف غير مدعوم. يرجى رفع صورة JPG أو PNG أو WEBP');
       return;
     }
 
-    // التحقق من حجم الملف
-    const maxSize = isImage ? 10 * 1024 * 1024 : 100 * 1024 * 1024; // 10MB للصور، 100MB للفيديو
+    // التحقق من حجم الملف (10MB)
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError(`حجم الملف كبير جداً. الحد الأقصى ${isImage ? '10' : '100'} ميجابايت`);
+      setError('حجم الملف كبير جداً. الحد الأقصى 10 ميجابايت');
       return;
     }
 
@@ -79,25 +73,13 @@ export default function UploadDashcamPage() {
     setError(null);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    setFileType(isImage ? 'image' : 'video');
-    setIsPlaying(false);
+    setFileType('image');
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       handleFileSelect(file);
-    }
-  };
-
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -109,9 +91,15 @@ export default function UploadDashcamPage() {
     setError(null);
     
     try {
+      // إنشاء FormData
       const formData = new FormData();
       formData.append('file', selectedFile);
       
+      // يمكن إضافة الموقع إذا كان متوفراً
+      // formData.append('latitude', '24.7136');
+      // formData.append('longitude', '46.6753');
+      
+      // رفع الملف باستخدام XMLHttpRequest لتتبع التقدم
       const xhr = new XMLHttpRequest();
       
       xhr.upload.addEventListener('progress', (e) => {
@@ -125,10 +113,13 @@ export default function UploadDashcamPage() {
         if (xhr.status === 200) {
           try {
             const result = JSON.parse(xhr.responseText);
+            
+            // حفظ النتائج في localStorage
             localStorage.setItem('accidentReport', JSON.stringify(result));
             
+            // الانتقال لصفحة التقرير بعد ثانية
             setTimeout(() => {
-              window.location.href = '/report/status';
+              router.push('/report/status');
             }, 1500);
           } catch (parseError) {
             setError('خطأ في معالجة استجابة الخادم');
@@ -160,7 +151,7 @@ export default function UploadDashcamPage() {
       });
       
       xhr.open('POST', `${API_BASE_URL}/analyze`);
-      xhr.timeout = fileType === 'video' ? 180000 : 60000; // 3 دقائق للفيديو، دقيقة للصور
+      xhr.timeout = 60000; // 60 seconds timeout
       xhr.send(formData);
       
     } catch (err: any) {
@@ -171,15 +162,11 @@ export default function UploadDashcamPage() {
   };
 
   const handleRemoveFile = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
     setSelectedFile(null);
     setPreviewUrl(null);
     setUploadProgress(0);
     setFileType(null);
     setError(null);
-    setIsPlaying(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -209,13 +196,13 @@ export default function UploadDashcamPage() {
           <div className="text-center mb-12 space-y-4">
             <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/20 mb-4">
               <Camera className="w-5 h-5 text-[#006C35]" />
-              <span className="text-[#006C35] text-sm font-bold">رفع صورة أو فيديو الحادث</span>
+              <span className="text-[#006C35] text-sm font-bold">رفع صورة الحادث</span>
               <div className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse"></div>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
               <span className="block bg-gradient-to-r from-[#006C35] via-[#00A859] to-[#006C35] bg-clip-text text-transparent">
-                ارفع صورة أو فيديو الحادث
+                ارفع صورة الحادث
               </span>
               <span className="block text-[#1a1a1a] mt-2 text-3xl sm:text-4xl">
                 للتحليل الفوري بالذكاء الاصطناعي
@@ -223,7 +210,7 @@ export default function UploadDashcamPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-700 max-w-2xl mx-auto">
-              قم برفع صورة واضحة أو مقطع فيديو للحادث وسيقوم بتحليله خلال ثوانٍ
+              قم برفع صورة واضحة للحادث وسيقوم  بتحليله خلال ثوانٍ
             </p>
           </div>
 
@@ -267,59 +254,35 @@ export default function UploadDashcamPage() {
 
                       <div>
                         <h3 className="text-2xl font-black text-[#1a1a1a] mb-3">
-                          {isDragging ? 'أفلت الملف هنا' : 'اسحب صورة أو فيديو الحادث وأفلته هنا'}
+                          {isDragging ? 'أفلت الصورة هنا' : 'اسحب صورة الحادث وأفلتها هنا'}
                         </h3>
                         <p className="text-gray-600 mb-4">أو اضغط لاختيار ملف من جهازك</p>
                         
-                        <div className="flex items-center justify-center gap-3">
-                          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#006C35] to-[#00A859] text-white font-bold hover:scale-105 transition-transform duration-300">
-                            <FileImage className="w-5 h-5" />
-                            <span>صورة</span>
-                          </div>
-                          <div className="text-gray-400 font-bold">أو</div>
-                          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#006C35] to-[#00A859] text-white font-bold hover:scale-105 transition-transform duration-300">
-                            <FileVideo className="w-5 h-5" />
-                            <span>فيديو</span>
-                          </div>
+                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#006C35] to-[#00A859] text-white font-bold hover:scale-105 transition-transform duration-300">
+                          <FileImage className="w-5 h-5" />
+                          <span>اختر صورة</span>
                         </div>
                       </div>
 
                       {/* أنواع الملفات المدعومة */}
-                      <div className="pt-4 border-t border-gray-200 space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-500 mb-2 font-semibold">الصور المدعومة:</p>
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            {['JPG', 'PNG', 'WEBP'].map((format) => (
-                              <span key={format} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold">
-                                {format}
-                              </span>
-                            ))}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">الحد الأقصى: 10 ميجابايت</p>
+                      <div className="pt-4 border-t border-gray-200">
+                        <p className="text-sm text-gray-500 mb-2 font-semibold">الصيغ المدعومة:</p>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          {['JPG', 'JPEG', 'PNG', 'WEBP'].map((format) => (
+                            <span key={format} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold">
+                              {format}
+                            </span>
+                          ))}
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-2 font-semibold">الفيديو المدعوم:</p>
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            {['MP4', 'MOV', 'AVI', 'WEBM'].map((format) => (
-                              <span key={format} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold">
-                                {format}
-                              </span>
-                            ))}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">الحد الأقصى: 100 ميجابايت</p>
-                        </div>
+                        <p className="text-xs text-gray-500 mt-2">الحد الأقصى: 10 ميجابايت</p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-6">
                       {/* معلومات الملف */}
                       <div className="flex items-start gap-4">
-                        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${fileType === 'video' ? 'from-blue-500 to-blue-600' : 'from-[#006C35] to-[#00A859]'} flex items-center justify-center flex-shrink-0`}>
-                          {fileType === 'video' ? (
-                            <FileVideo className="w-8 h-8 text-white" />
-                          ) : (
-                            <FileImage className="w-8 h-8 text-white" />
-                          )}
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center flex-shrink-0">
+                          <FileImage className="w-8 h-8 text-white" />
                         </div>
                         
                         <div className="flex-1 min-w-0">
@@ -329,7 +292,7 @@ export default function UploadDashcamPage() {
                                 {selectedFile.name}
                               </h4>
                               <p className="text-sm text-gray-500">
-                                {formatFileSize(selectedFile.size)} • {fileType === 'video' ? 'فيديو' : 'صورة'}
+                                {formatFileSize(selectedFile.size)}
                               </p>
                             </div>
                             
@@ -366,38 +329,14 @@ export default function UploadDashcamPage() {
                         </div>
                       </div>
 
-                      {/* معاينة */}
+                      {/* معاينة الصورة */}
                       {previewUrl && !isUploading && (
                         <div className="relative rounded-2xl overflow-hidden bg-black">
-                          {fileType === 'image' ? (
-                            <img 
-                              src={previewUrl} 
-                              alt="معاينة الصورة"
-                              className="w-full h-64 object-contain"
-                            />
-                          ) : (
-                            <div className="relative">
-                              <video 
-                                ref={videoRef}
-                                src={previewUrl} 
-                                className="w-full h-64 object-contain"
-                                onClick={togglePlayPause}
-                              />
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePlayPause();
-                                }}
-                                className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
-                              >
-                                {isPlaying ? (
-                                  <Pause className="w-16 h-16 text-white" />
-                                ) : (
-                                  <Play className="w-16 h-16 text-white" />
-                                )}
-                              </button>
-                            </div>
-                          )}
+                          <img 
+                            src={previewUrl} 
+                            alt="معاينة الصورة"
+                            className="w-full h-64 object-contain"
+                          />
                         </div>
                       )}
                     </div>
@@ -406,7 +345,7 @@ export default function UploadDashcamPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp,video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/webm"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={handleFileInput}
                     className="hidden"
                     disabled={isUploading}
@@ -424,7 +363,7 @@ export default function UploadDashcamPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#00A859] to-[#006C35] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <span className="relative text-white font-bold text-lg flex items-center gap-3 justify-center">
                     <Upload className="w-6 h-6" />
-                    ابدأ رفع {fileType === 'video' ? 'الفيديو' : 'الصورة'} والتحليل
+                    ابدأ رفع الصورة والتحليل
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                   </span>
                 </button>
@@ -445,7 +384,7 @@ export default function UploadDashcamPage() {
                 </div>
               )}
               
-              {/* رسالة النجاح */}
+              {/* رسالة النجاح والانتقال */}
               {uploadProgress === 100 && isUploading && (
                 <div className="bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-2xl p-6 text-white animate-pulse">
                   <div className="flex items-center gap-3 mb-4">
@@ -476,11 +415,10 @@ export default function UploadDashcamPage() {
 
                   <ul className="space-y-4">
                     {[
-                      { icon: Camera, text: 'التقط صورة أو فيديو واضح لموقع الحادث' },
+                      { icon: Camera, text: 'التقط صورة واضحة لموقع الحادث' },
                       { icon: FileImage, text: 'تأكد من ظهور جميع المركبات المتضررة' },
                       { icon: Shield, text: 'اجعل الإضاءة جيدة وتجنب الظلال' },
-                      { icon: Film, text: 'للفيديو: صور من زوايا متعددة (10-30 ثانية)' },
-                      { icon: CheckCircle, text: 'أظهر نقطة الاصطدام بوضوح' }
+                      { icon: CheckCircle, text: 'صور من زاوية توضح نقطة الاصطدام' }
                     ].map((tip, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-lg bg-[#006C35]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -523,6 +461,8 @@ export default function UploadDashcamPage() {
                         </div>
                       ))}
                     </div>
+
+                    
                   </div>
                 </div>
               </div>
