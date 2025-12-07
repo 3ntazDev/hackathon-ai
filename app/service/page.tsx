@@ -1,334 +1,427 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Camera, MapPin, ChevronRight, FileVideo, Shield, Zap, Clock, CheckCircle, Activity } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { 
+  CheckCircle, 
+  AlertTriangle, 
+  Car, 
+  Users, 
+  Phone, 
+  Camera, 
+  MapPin, 
+  Clock, 
+  FileText, 
+  Shield,
+  ArrowRight,
+  Download,
+  Share2,
+  Home,
+  TrendingUp,
+  AlertCircle,
+  Wrench,
+  DollarSign
+} from 'lucide-react';
 
-export default function ServicePage() {
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [scrollY, setScrollY] = useState(0);
+export default function ReportStatusPage() {
+  const router = useRouter();
+  const [reportData, setReportData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // جلب البيانات من localStorage
+    const savedReport = localStorage.getItem('accidentReport');
+    
+    if (savedReport) {
+      try {
+        const data = JSON.parse(savedReport);
+        setReportData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('خطأ في تحليل البيانات:', error);
+        setLoading(false);
+      }
+    } else {
+      // إذا لم توجد بيانات، العودة للصفحة الرئيسية
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
+    }
+  }, [router]);
+
+  const getSeverityColor = (level: string) => {
+    switch(level) {
+      case 'عالي':
+        return 'from-red-500 to-red-600';
+      case 'متوسط':
+        return 'from-orange-500 to-orange-600';
+      case 'منخفض':
+        return 'from-green-500 to-green-600';
+      default:
+        return 'from-gray-500 to-gray-600';
+    }
+  };
+
+  const getSeverityIcon = (level: string) => {
+    switch(level) {
+      case 'عالي':
+        return <AlertTriangle className="w-8 h-8" />;
+      case 'متوسط':
+        return <AlertCircle className="w-8 h-8" />;
+      case 'منخفض':
+        return <CheckCircle className="w-8 h-8" />;
+      default:
+        return <AlertCircle className="w-8 h-8" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#006C35] via-[#F4F4F4] to-[#FFFFFF] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 border-4 border-[#006C35] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl font-bold text-[#006C35]">جاري تحميل التقرير...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!reportData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#006C35] via-[#F4F4F4] to-[#FFFFFF] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <AlertTriangle className="w-20 h-20 text-red-500 mx-auto" />
+          <h2 className="text-2xl font-bold text-gray-800">لم يتم العثور على تقرير</h2>
+          <p className="text-gray-600">جاري التحويل للصفحة الرئيسية...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#006C35] via-[#F4F4F4] to-[#FFFFFF] overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-[#006C35] via-[#F4F4F4] to-[#FFFFFF] py-8 px-4">
       
-      {/* Navbar - نفس تصميم الصفحة الرئيسية */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-        scrollY > 50 
-          ? 'bg-white/98 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,108,53,0.12)] py-2 sm:py-3' 
-          : 'bg-gradient-to-b from-[#006C35]/95 to-transparent py-3 sm:py-5'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-          
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] blur-lg sm:blur-xl opacity-50 rounded-xl sm:rounded-2xl"></div>
-              <div className="relative w-10 h-10 sm:w-12 md:w-14 sm:h-12 md:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center shadow-lg">
-                <Shield className="w-5 h-5 sm:w-6 md:w-8 sm:h-6 md:h-8 text-white" strokeWidth={2.5} />
-              </div>
-            </div>
-          
-            <div className="text-right">
-              <h1 className={`text-xl sm:text-2xl font-black tracking-tight transition-colors duration-300 ${
-                scrollY > 50 ? 'text-[#006C35]' : 'text-white'
-              }`}>
-                رَصـــد
-              </h1>
-              <p className={`text-[10px] sm:text-xs font-semibold transition-colors duration-300 ${
-                scrollY > 50 ? 'text-[#00A859]' : 'text-white/80'
-              }`}>
-                منصة تحليل الحوادث
-              </p>
-            </div>
-          </div>
-          
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-            {[
-              { name: 'الرئيسية', active: false },
-              { name: 'كيف يعمل', active: false },
-              { name: 'رفع البلاغ', active: true }
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                className={`relative text-sm font-bold transition-all duration-300 ${
-                  scrollY > 50
-                    ? item.active ? 'text-[#006C35]' : 'text-gray-600 hover:text-[#006C35]'
-                    : 'text-white/90 hover:text-white'
-                }`}
-              >
-                {item.name}
-                {item.active && (
-                  <div className={`absolute -bottom-1 left-0 right-0 h-0.5 rounded-full transition-colors duration-300 ${
-                    scrollY > 50 ? 'bg-[#006C35]' : 'bg-white'
-                  }`}></div>
-                )}
-              </button>
-            ))}
-          </div>
+      {/* خلفية متحركة */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-[#006C35]/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-gradient-to-br from-[#00A859]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
 
-          <Link href="/">
-            <button className="relative group px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#006C35] to-[#00A859] group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#00A859] to-[#006C35] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <span className="relative text-white flex items-center gap-2">
-                <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">العودة للرئيسية</span>
-                <span className="sm:hidden">الرئيسية</span>
-              </span>
-            </button>
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center pt-24 px-4 sm:px-6 overflow-hidden">
+      <div className="relative z-10 max-w-6xl mx-auto space-y-6">
         
-        {/* خلفية متحركة - ألوان سعودية */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-10 w-96 h-96 bg-gradient-to-br from-[#006C35]/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-gradient-to-br from-[#00A859]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        {/* Header - رقم البلاغ */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/20">
+            <FileText className="w-5 h-5 text-[#006C35]" />
+            <span className="text-[#006C35] text-sm font-bold">تقرير الحادث</span>
+            <div className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse"></div>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-black text-[#1a1a1a]">
+            رقم البلاغ: <span className="text-[#006C35]">{reportData.incident_id}</span>
+          </h1>
           
-          {/* خطوط هندسية */}
-          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#006C35]/20 to-transparent"></div>
-          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00A859]/20 to-transparent"></div>
-          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#006C35]/20 to-transparent"></div>
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <Clock className="w-5 h-5" />
+            <span className="font-semibold">
+              {new Date(reportData.timestamp).toLocaleString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </span>
+          </div>
         </div>
 
-        <div className="max-w-7xl mx-auto w-full relative z-10">
+        {/* مستوى الخطورة */}
+        <div className={`relative bg-gradient-to-r ${getSeverityColor(reportData.severity_level)} rounded-3xl p-8 text-white shadow-2xl`}>
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
           
-          {/* العنوان والوصف */}
-          <div className="text-center mb-16 space-y-6">
-            
-            {/* Badge */}
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/20">
-              <div className="w-2 h-2 rounded-full bg-[#00A859] animate-pulse"></div>
-              <span className="text-[#006C35] text-sm font-bold">اختر طريقة رفع البلاغ المناسبة</span>
-              <Zap className="w-5 h-5 text-[#00A859]" />
-            </div>
-
-            {/* العنوان الرئيسي */}
-            <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-tight">
-                <span className="block bg-gradient-to-r from-[#006C35] via-[#00A859] to-[#006C35] bg-clip-text text-transparent animate-pulse">
-                  كيف تريد رفع
-                </span>
-                <span className="block text-[#1a1a1a] mt-2">
-                  بلاغ الحادث؟
-                </span>
-              </h1>
-              
-              {/* شعار سعودي */}
-              <div className="flex items-center justify-center gap-3">
-                <div className="h-1 w-16 bg-gradient-to-r from-[#006C35] to-[#00A859] rounded-full"></div>
-                <span className="text-[#006C35] font-bold text-sm">⚡ سريع وآمن ودقيق</span>
-                <div className="h-1 w-16 bg-gradient-to-r from-[#00A859] to-[#006C35] rounded-full"></div>
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                {getSeverityIcon(reportData.severity_level)}
+              </div>
+              <div>
+                <h2 className="text-3xl font-black mb-1">مستوى الخطورة: {reportData.severity_level}</h2>
+                <p className="text-white/90 font-semibold">نوع الحادث: {reportData.accident_type}</p>
               </div>
             </div>
+            <div className="text-right">
+              <div className="text-5xl font-black">{reportData.severity_score}</div>
+              <div className="text-sm font-semibold text-white/90">من 100</div>
+            </div>
+          </div>
+        </div>
 
-            {/* الوصف */}
-            <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 leading-relaxed max-w-3xl mx-auto font-medium">
-              نوفر لك <span className="text-[#006C35] font-bold">خيارين سهلين</span> لرفع البلاغ بناءً على ما لديك من معلومات
+        {/* وصف الحادث */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
+              <Car className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-2xl font-black text-[#1a1a1a]">وصف الحادث</h3>
+          </div>
+          
+          <div className="prose prose-lg max-w-none">
+            <p className="text-gray-700 leading-relaxed text-lg">
+              {reportData.accident_description}
             </p>
           </div>
 
-          {/* البطاقات */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          <div className="mt-6 p-4 bg-red-50 border-2 border-red-100 rounded-xl">
+            <h4 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              السبب الرئيسي:
+            </h4>
+            <p className="text-red-800 font-semibold">{reportData.accident_cause.primary_cause}</p>
             
-            {/* بطاقة الداش كام */}
-            <Link href="/upload-dashcam">
-            <div
-              onMouseEnter={() => setHoveredCard('dashcam')}
-              onMouseLeave={() => setHoveredCard(null)}
-              className="group relative"
-            >
-              {/* خلفية متوهجة */}
-              <div className={`absolute inset-0 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl transition-all duration-500 ${
-                hoveredCard === 'dashcam' ? 'scale-105 opacity-100 blur-2xl' : 'scale-100 opacity-60 blur-xl'
-              }`}></div>
-              
-              <div className={`relative bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl transition-all duration-500 cursor-pointer border-2 border-[#006C35]/30 ${
-                hoveredCard === 'dashcam' ? 'scale-105 -translate-y-3' : 'scale-100'
-              }`}>
-                
-                {/* الباترن الخلفي */}
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
-
-                {/* Badge */}
-                <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-6">
-                  <Camera className="w-4 h-4 text-white" />
-                  <span className="text-white text-xs font-bold">الأكثر دقة</span>
-                </div>
-
-                {/* أيقونة متحركة */}
-                <div className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
-                  hoveredCard === 'dashcam' ? 'rotate-12 scale-110' : 'rotate-0 scale-100'
-                }`}>
-                  <Camera className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={2.5} />
-                </div>
-
-                {/* المحتوى */}
-                <h2 className="relative text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4">
-                  رفع بلاغ عن طريق
-                  <br />
-                  الداش كام
-                </h2>
-                
-                <p className="relative text-base sm:text-lg text-white/90 mb-6 leading-relaxed">
-                  قم برفع <span className="font-bold">فيديو الحادث</span> مباشرة من كاميرا سيارتك وسنقوم بمعالجته تلقائياً باستخدام الذكاء الاصطناعي
-                </p>
-
-                {/* المميزات */}
-                <ul className="relative space-y-3 mb-8">
-                  {[
-                    { icon: CheckCircle, text: 'معالجة تلقائية بالذكاء الاصطناعي' },
-                    { icon: Activity, text: 'دقة عالية في تحديد المسؤولية 98%' },
-                    { icon: Clock, text: 'نتائج فورية خلال 5 ثوانٍ' }
-                  ].map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-white/90">
-                      <feature.icon className="w-5 h-5 ml-2 text-white flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{feature.text}</span>
-                    </li>
+            {reportData.accident_cause.contributing_factors.length > 0 && (
+              <>
+                <h4 className="font-bold text-red-900 mt-4 mb-2">عوامل إضافية:</h4>
+                <ul className="list-disc list-inside space-y-1 text-red-800">
+                  {reportData.accident_cause.contributing_factors.map((factor: string, idx: number) => (
+                    <li key={idx}>{factor}</li>
                   ))}
                 </ul>
-
-                {/* زر الإجراء */}
-                <div className={`relative flex items-center justify-between p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-xl transition-all duration-300 group-hover:bg-white/20 ${
-                  hoveredCard === 'dashcam' ? 'bg-white/20' : 'bg-white/10'
-                }`}>
-                  <span className="text-white font-bold text-base sm:text-lg">ابدأ رفع الفيديو</span>
-                  <ChevronRight className={`w-6 h-6 text-white transition-transform duration-300 ${
-                    hoveredCard === 'dashcam' ? 'translate-x-2' : 'translate-x-0'
-                  }`} />
-                </div>
-
-                {/* تأثير التوهج المتحرك */}
-                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity duration-500 ${
-                  hoveredCard === 'dashcam' ? 'opacity-100' : 'opacity-0'
-                } rounded-3xl pointer-events-none`}
-                  style={{
-                    transform: hoveredCard === 'dashcam' ? 'translateX(0)' : 'translateX(-100%)',
-                    transition: 'transform 1s ease-in-out, opacity 0.5s'
-                  }}
-                ></div>
-              </div>
-            </div>
-            </Link>
-
-            {/* بطاقة الموقع */}
-            <Link href="/report">
-            <div
-              onMouseEnter={() => setHoveredCard('location')}
-              onMouseLeave={() => setHoveredCard(null)}
-              className="group relative"
-            >
-              {/* خلفية متوهجة */}
-              <div className={`absolute inset-0 bg-gradient-to-br from-[#00A859] to-[#006C35] rounded-3xl transition-all duration-500 ${
-                hoveredCard === 'location' ? 'scale-105 opacity-100 blur-2xl' : 'scale-100 opacity-60 blur-xl'
-              }`}></div>
-              
-              <div className={`relative bg-gradient-to-br from-[#00A859] to-[#006C35] rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl transition-all duration-500 cursor-pointer border-2 border-[#00A859]/30 ${
-                hoveredCard === 'location' ? 'scale-105 -translate-y-3' : 'scale-100'
-              }`}>
-                
-                {/* الباترن الخلفي */}
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20 rounded-3xl"></div>
-
-                {/* Badge */}
-                <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-6">
-                  <MapPin className="w-4 h-4 text-white" />
-                  <span className="text-white text-xs font-bold">سهل وسريع</span>
-                </div>
-
-                {/* أيقونة متحركة */}
-                <div className={`relative w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
-                  hoveredCard === 'location' ? '-rotate-12 scale-110' : 'rotate-0 scale-100'
-                }`}>
-                  <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={2.5} />
-                </div>
-
-                {/* المحتوى */}
-                <h2 className="relative text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-4">
-                  رفع بلاغ باستخدام
-                  <br />
-                  الموقع
-                </h2>
-                
-                <p className="relative text-base sm:text-lg text-white/90 mb-6 leading-relaxed">
-                  قدم البلاغ مباشرة عبر <span className="font-bold">ملء النموذج</span> وإدخال التفاصيل والصور إذا لم يكن لديك فيديو
-                </p>
-
-                {/* المميزات */}
-                <ul className="relative space-y-3 mb-8">
-                  {[
-                    { icon: CheckCircle, text: 'سهولة في الاستخدام والتعبئة' },
-                    { icon: FileVideo, text: 'لا يتطلب فيديو أو داش كام' },
-                    { icon: Activity, text: 'إضافة تفاصيل دقيقة ومرفقات' }
-                  ].map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-white/90">
-                      <feature.icon className="w-5 h-5 ml-2 text-white flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{feature.text}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* زر الإجراء */}
-                <div className={`relative flex items-center justify-between p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-xl transition-all duration-300 group-hover:bg-white/20 ${
-                  hoveredCard === 'location' ? 'bg-white/20' : 'bg-white/10'
-                }`}>
-                  <span className="text-white font-bold text-base sm:text-lg">ابدأ ملء النموذج</span>
-                  <ChevronRight className={`w-6 h-6 text-white transition-transform duration-300 ${
-                    hoveredCard === 'location' ? 'translate-x-2' : 'translate-x-0'
-                  }`} />
-                </div>
-
-                {/* تأثير التوهج المتحرك */}
-                <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity duration-500 ${
-                  hoveredCard === 'location' ? 'opacity-100' : 'opacity-0'
-                } rounded-3xl pointer-events-none`}
-                  style={{
-                    transform: hoveredCard === 'location' ? 'translateX(0)' : 'translateX(-100%)',
-                    transition: 'transform 1s ease-in-out, opacity 0.5s'
-                  }}
-                ></div>
-              </div>
-            </div>
-            </Link>
-
+              </>
+            )}
           </div>
-
-          {/* ملاحظة إضافية */}
-          <div className="mt-12 sm:mt-16 text-center space-y-4">
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white shadow-lg border-2 border-[#006C35]/10">
-              <Shield className="w-5 h-5 text-[#006C35]" />
-              <span className="text-gray-700 text-sm font-semibold">
-                جميع البلاغات سرية ويتم معالجتها بعناية فائقة
-              </span>
-            </div>
-            
-            {/* إحصائيات سريعة */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto pt-6">
-              {[
-                { icon: Clock, value: '< 5 ث', label: 'وقت المعالجة' },
-                { icon: Activity, value: '98%', label: 'دقة التحليل' },
-                { icon: Shield, value: '100%', label: 'أمان وخصوصية' }
-              ].map((stat, idx) => (
-                <div key={idx} className="p-4 sm:p-6 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
-                  <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-[#006C35] mb-2 mx-auto" />
-                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#006C35] mb-1">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-semibold">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
-      </section>
 
+        {/* تقييم المسؤولية */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-2xl font-black text-[#1a1a1a]">تقييم المسؤولية</h3>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="relative">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+                <h4 className="text-xl font-bold mb-4">الطرف الأول (A)</h4>
+                <div className="text-6xl font-black mb-2">{reportData.fault_assessment.party_a}%</div>
+                <p className="text-blue-100">نسبة المسؤولية</p>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
+                <h4 className="text-xl font-bold mb-4">الطرف الثاني (B)</h4>
+                <div className="text-6xl font-black mb-2">{reportData.fault_assessment.party_b}%</div>
+                <p className="text-purple-100">نسبة المسؤولية</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-gray-50 rounded-2xl">
+            <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-[#006C35]" />
+              تفسير المسؤولية:
+            </h4>
+            <p className="text-gray-700 leading-relaxed">{reportData.fault_explanation}</p>
+          </div>
+        </div>
+
+        {/* الأضرار والتكاليف */}
+        <div className="grid md:grid-cols-2 gap-6">
+          
+          {/* تفاصيل الأضرار */}
+          <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
+                <Wrench className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-black text-[#1a1a1a]">تفاصيل الأضرار</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-700 leading-relaxed">{reportData.damage_description}</p>
+              
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2">الأجزاء المتضررة:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {reportData.damaged_parts.map((part: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 bg-red-100 text-red-800 rounded-lg text-sm font-bold">
+                      {part}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className={`p-4 rounded-xl ${reportData.vehicle_drivable ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">حالة القيادة</p>
+                  <p className={`font-black text-lg ${reportData.vehicle_drivable ? 'text-green-700' : 'text-red-700'}`}>
+                    {reportData.vehicle_drivable ? '✓ قابلة للقيادة' : '✗ غير قابلة'}
+                  </p>
+                </div>
+
+                <div className={`p-4 rounded-xl ${reportData.tow_needed ? 'bg-orange-50 border-2 border-orange-200' : 'bg-green-50 border-2 border-green-200'}`}>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">سحب السيارة</p>
+                  <p className={`font-black text-lg ${reportData.tow_needed ? 'text-orange-700' : 'text-green-700'}`}>
+                    {reportData.tow_needed ? '⚠ مطلوب' : '✓ غير مطلوب'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* تكاليف الإصلاح */}
+          <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-black text-[#1a1a1a]">تقدير التكاليف</h3>
+            </div>
+
+            <div className="space-y-6">
+              <div className="text-center p-6 bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-2xl text-white">
+                <p className="text-sm font-semibold mb-2 text-white/90">تكلفة الإصلاح المتوقعة</p>
+                <p className="text-4xl font-black">{reportData.repair_cost}</p>
+              </div>
+
+              <div className={`p-4 rounded-xl ${reportData.injuries_detected ? 'bg-red-50 border-2 border-red-200' : 'bg-green-50 border-2 border-green-200'}`}>
+                <div className="flex items-center gap-3">
+                  {reportData.injuries_detected ? (
+                    <AlertTriangle className="w-8 h-8 text-red-600" />
+                  ) : (
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  )}
+                  <div>
+                    <p className="font-bold text-gray-900">إصابات</p>
+                    <p className={`font-black ${reportData.injuries_detected ? 'text-red-700' : 'text-green-700'}`}>
+                      {reportData.injuries_detected ? '⚠ تم اكتشاف إصابات' : '✓ لا توجد إصابات ظاهرة'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* الإجراءات المطلوبة */}
+        <div className="bg-gradient-to-br from-[#006C35] to-[#00A859] rounded-3xl p-8 text-white shadow-2xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Phone className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-2xl font-black">الإجراءات المطلوبة</h3>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <p className="text-sm text-white/80 mb-1">الجهة المختصة</p>
+              <p className="text-2xl font-black">{reportData.emergency_response.service_needed}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <p className="text-sm text-white/80 mb-1">مستوى الأولوية</p>
+              <p className="text-2xl font-black">{reportData.emergency_response.priority_level}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <p className="text-sm text-white/80 mb-1">وقت الاستجابة</p>
+              <p className="text-2xl font-black">{reportData.emergency_response.estimated_response_time}</p>
+            </div>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+            <h4 className="font-bold text-xl mb-4">التوصيات:</h4>
+            <div className="whitespace-pre-line text-white/90 leading-relaxed">
+              {reportData.recommended_action}
+            </div>
+          </div>
+        </div>
+
+        {/* طلب كاميرات المراقبة */}
+        {reportData.camera_request.cameras_needed && (
+          <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-[#006C35]">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006C35] to-[#00A859] flex items-center justify-center">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-black text-[#1a1a1a]">طلب كاميرات المراقبة</h3>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                <h4 className="font-bold text-blue-900 mb-2">السبب:</h4>
+                <p className="text-blue-800">{reportData.camera_request.reason}</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-900 mb-2">المواقع المحتملة:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {reportData.camera_request.estimated_locations.map((location: string, idx: number) => (
+                    <span key={idx} className="px-4 py-2 bg-[#006C35]/10 text-[#006C35] rounded-lg font-bold flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {location}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl">
+                <p className="text-green-800 font-semibold flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  سيتم التواصل تلقائياً مع الجهات المختصة لطلب تسجيلات الكاميرات
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ملاحظات فنية */}
+        {reportData.technical_notes && (
+          <div className="bg-gray-50 rounded-3xl p-8 border-2 border-gray-200">
+            <div className="flex items-center gap-3 mb-4">
+              <FileText className="w-6 h-6 text-gray-600" />
+              <h3 className="text-xl font-black text-gray-900">ملاحظات فنية</h3>
+            </div>
+            <p className="text-gray-700 leading-relaxed">{reportData.technical_notes}</p>
+          </div>
+        )}
+
+        {/* أزرار الإجراءات */}
+        <div className="grid md:grid-cols-3 gap-4">
+          <button 
+            onClick={() => window.print()}
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-[#006C35] font-bold text-gray-700 hover:text-[#006C35]"
+          >
+            <Download className="w-5 h-5" />
+            تحميل التقرير PDF
+          </button>
+
+          <button 
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: 'تقرير حادث',
+                  text: `تقرير حادث رقم: ${reportData.incident_id}`,
+                });
+              }
+            }}
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-[#006C35] font-bold text-gray-700 hover:text-[#006C35]"
+          >
+            <Share2 className="w-5 h-5" />
+            مشاركة التقرير
+          </button>
+
+          <button 
+            onClick={() => router.push('/')}
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#006C35] to-[#00A859] rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-bold text-white hover:scale-105"
+          >
+            <Home className="w-5 h-5" />
+            العودة للرئيسية
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+
+      </div>
     </main>
   );
 }
