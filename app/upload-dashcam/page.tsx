@@ -210,7 +210,7 @@ export default function UploadDashcamPage() {
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-700 max-w-2xl mx-auto">
-              قم برفع صورة واضحة للحادث وسيقوم <span className="text-[#006C35] font-bold">Gemini AI</span> بتحليله خلال ثوانٍ
+              قم برفع صورة واضحة للحادث وسيقوم  بتحليله خلال ثوانٍ
             </p>
           </div>
 
@@ -462,12 +462,7 @@ export default function UploadDashcamPage() {
                       ))}
                     </div>
 
-                    <div className="pt-4 border-t border-white/20">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Shield className="w-5 h-5" />
-                        <span className="font-bold">مدعوم بـ Gemini 2.5 Flash AI</span>
-                      </div>
-                    </div>
+                    
                   </div>
                 </div>
               </div>
